@@ -1,25 +1,11 @@
-import argparse
 import os, sys, inspect, time
-import random
 import torch
-import torchnet as tnt
 import numpy as np
-import itertools
-import cv2
-import imageio
 import torchvision
-from torchvision.models import resnet
-from torchvision.models._utils import IntermediateLayerGetter
-from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 from PIL import Image
 import torchvision.transforms.functional as TF
 import torchvision.transforms as transforms
-from torchvision.ops import misc as misc_nn_ops
-
-from tqdm import tqdm
-from scannet_utils import read_mesh_vertices
-from utils import projection
 from utils.image_util import load_depth_label_pose
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
