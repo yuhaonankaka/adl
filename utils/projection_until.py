@@ -28,13 +28,11 @@ proj_image_dims = [40, 30]
 
 # 2d mask r cnn model
 # get the model using our helper function
-def get_model_instance_segmentation(num_classes=18):
-    model = torchvision.models.detection.maskrcnn_resnet50_fpn(num_classes=num_classes)
-    model.load_state_dict(torch.load("/home/haonan/Desktop/ADL/model_Dec20.pth")["model"])
-    return model
-model_maskrcnn = get_model_instance_segmentation(18)
-# move model to the right device
-model_maskrcnn = model_maskrcnn.to(device)
+# def get_model_instance_segmentation(num_classes=18):
+#     model = torchvision.models.detection.maskrcnn_resnet50_fpn(num_classes=num_classes)
+#     return model
+# model_maskrcnn = get_model_instance_segmentation(18)
+# model_maskrcnn = model_maskrcnn.to(device)
 
 
 def read_lines_from_file(filename):
