@@ -161,7 +161,7 @@ if __name__ == "__main__":
     # =================
     # 3DMV
     # =================
-    parser.add_argument('--data_path_2d', default='/home/haonan/PycharmProjects/mask-rcnn-for-indoor-objects/data/rawdata', help='path to 2d train data')
+    parser.add_argument('--data_path_2d', default='/home/davech2y/frames_square', help='path to 2d train data')
     parser.add_argument('--num_classes', default=18, help='#classes')
     parser.add_argument('--num_nearest_images', type=int, default=50, help='#images')
     parser.add_argument('--model2d_type', default='scannet', help='which enet (scannet)')
@@ -173,7 +173,7 @@ if __name__ == "__main__":
     # scannet intrinsic params
     parser.add_argument('--intrinsic_image_width', type=int, default=640, help='2d image width')
     parser.add_argument('--intrinsic_image_height', type=int, default=480, help='2d image height')
-    RAW_DATA_DIR = '/home/haonan/PycharmProjects/ScanRefer/data/scans/'
+    RAW_DATA_DIR = '/mnt/canis/Datasets/ScanNet/public/v2/scans/'
     parser.add_argument('--RAW_DATA_DIR', default=RAW_DATA_DIR)
     parser.add_argument('--voxel_size', type=float, default=0.05, help='voxel size (in meters)')
 
