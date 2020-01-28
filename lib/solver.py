@@ -15,7 +15,9 @@ from tensorboardX import SummaryWriter
 
 from models.enet import create_enet_for_3d
 from utils import image_util
+from utils.image_util import read_lines_from_file
 from utils.projection import ProjectionHelper
+from utils.projection_until import scannet_projection
 
 sys.path.append(os.path.join(os.getcwd(), "lib")) # HACK add the lib folder
 from lib.config import CONF
@@ -99,168 +101,22 @@ color_mean = [0.496342, 0.466664, 0.440796]
 color_std = [0.277856, 0.28623, 0.291129]
 
 
-def get_batch_intrinsics(batch_scan_names, args):
-    """ Read intrinsics from txt file
-    :param scan_name:
-    :return: numpy array of shape: [batch_size, 4, 4]
-    """
-    batch_intrinsics = []
-    for scan_name in batch_scan_names:
-        intrinsic_str = image_util.read_lines_from_file(
-            args.data_path_2d + '/' + scan_name + '/intrinsic_depth.txt')
-        fx = float(intrinsic_str[0].split()[0])
-        fy = float(intrinsic_str[1].split()[1])
-        mx = float(intrinsic_str[0].split()[2])
-        my = float(intrinsic_str[1].split()[2])
-
-        intrinsic = image_util.make_intrinsic(fx, fy, mx, my)
-        intrinsic = image_util.adjust_intrinsic(intrinsic,
-                                                [args.intrinsic_image_width, args.intrinsic_image_height],
-                                                proj_image_dims)
-        batch_intrinsics.append(np.array(intrinsic))
-
-    return np.array(batch_intrinsics)
-
-
-def get_random_frames(data_path_2d, scan_name, args):
-    img_path = os.path.join(args.data_path_2d, scan_name, "color")
-    img_list = list(sorted(os.listdir(os.path.join(img_path))))
-    indices = np.random.choice(len(img_list), args.num_nearest_images, replace=False)
-    chosen_imgs = img_list[indices]
-    return chosen_imgs
-
-
-# ------------------------------------------------------------------------- GLOBAL CONFIG END
-
-def project_2d_features(batch_data_label, args, model2d_fixed, model2d_trainable):
-    """
-        Retrieve certain amount of images(NUM_IMAGES) corresponding to the scene and find the correspondence mapping
-        between 3D and 2D points.
-
-        Parameters
-        ----------
-        batch_data_label: dict
-            got from dataloader.
-
-
-        Returns:
-            proj_ind_3d: indexes of 3D points, index 0 is the number of valid points
-            proj_ind_2d: indexes of 2D points, correspondent to indexes in proj_ind_3d. index 0 is number of valid points.
-            imageft: 2D feature maps extracted from given 2D CNN
-    """
-
-    batch_scan_names = batch_data_label["scan_name"]
-
-    # Get camera intrinsics for each scene
-    batch_intrinsics = get_batch_intrinsics(batch_scan_names, args)
-
-    # Get 2d images and it's feature
-    depth_images = torch.cuda.FloatTensor(args.batch_size * args.num_nearest_images, proj_image_dims[1], proj_image_dims[0])
-    color_images = torch.cuda.FloatTensor(args.batch_size * args.num_nearest_images, 3, input_image_dims[1], input_image_dims[0])
-    camera_poses = torch.cuda.FloatTensor(args.batch_size * args.num_nearest_images, 4, 4)
-    label_images = torch.cuda.LongTensor(args.batch_size * args.num_nearest_images, proj_image_dims[1],
-                                         proj_image_dims[0])  # for proxy loss
-
-    image_util.load_frames_multi(args.data_path_2d, batch_scan_names, args.num_nearest_images,
-                                 depth_images, color_images, camera_poses, color_mean, color_std, choice='even')
-
-    # Convert aligned point cloud back to unaligned, so that we can do back-projection
-    # using camera intrinsics & extrinsics
-    batch_pcl_aligned = batch_data_label['point_clouds']
-    batch_pcl_unaligned = []
-    batch_scan_names = batch_data_label['scan_name']
-    # find the align matrix according to scan_name
-    batch_align_matrix = np.array([])
-    for scan_name, pcl_aligned in zip(batch_scan_names, batch_pcl_aligned):
-        # Load alignments
-        lines = open(args.RAW_DATA_DIR + scan_name + "/" + scan_name + ".txt")
-        for line in lines:
-            if 'axisAlignment' in line:
-                axis_align_matrix = [float(x) \
-                                     for x in line.rstrip().strip('axisAlignment = ').split(' ')]
-                break
-        axis_align_matrix = np.array(axis_align_matrix).reshape((4, 4))
-        # inv_axis_align_matrix_T = torch.inverse(torch.FloatTensor(axis_align_matrix.T))
-        batch_align_matrix = np.append(batch_align_matrix, axis_align_matrix)
-        inv_axis_align_matrix_T = np.linalg.inv(axis_align_matrix.T)
-
-        # Numpy version:
-        # Unalign the Point Cloud (See load_scannet_data.py as reference)
-        pts = np.ones((pcl_aligned.size()[0], 4))
-        pts[:, 0:3] = pcl_aligned[:, 0:3].cpu().numpy()
-        pcl = np.dot(pts, inv_axis_align_matrix_T)
-        batch_pcl_unaligned.append(torch.from_numpy(pcl).float())
-
-        # # TEST
-        # from test_helper import test_unalign_pcl
-        # test_unalign_pcl(pcl_aligned.cpu().numpy(), pcl, scan_name, axis_align_matrix)
-        # # END of TEST
-
-        # Torch version:
-        # Unalign the Point Cloud (See load_scannet_data.py as reference)
-        # pcl = torch.ones(pcl_aligned.size()[0], 4)
-        # pcl[:, 0:3] = pcl_aligned[:, 0:3]
-        # pcl = torch.mm(pcl, inv_axis_align_matrix_T)
-        # batch_pcl_unaligned.append(pcl)
-
-    batch_pcl_unaligned = torch.stack(batch_pcl_unaligned)
-
-    # Compute 3d <-> 2d projection mapping for each scene in the batch
-    proj_mapping_list = []
-    img_count = 0
-    for d_img, c_pose in zip(depth_images, camera_poses):
-        # TODO: double-check the curr_idx_batch
-        curr_idx_batch = img_count // args.num_nearest_images
-        if curr_idx_batch >= len(batch_scan_names):
-            break
-        # TEST
-        # curr_scan_name = batch_scan_names[batch_idx]
-        # pcl_root = "/home/kloping/Documents/TUM/3D_object_localization/data/scannet_point_clouds/"
-        # pcl_path = os.path.join(pcl_root, curr_scan_name, curr_scan_name + "_vh_clean_2.ply")
-        # destination = os.path.join(BASE_DIR, "utils", "test", "orig_mesh.ply")
-        # shutil.copyfile(pcl_path, destination)
-        # END of TEST
-        projection = ProjectionHelper(batch_intrinsics[curr_idx_batch], args.depth_min, args.depth_max,
-                                      proj_image_dims,
-                                      args.num_points)
-        proj_mapping = projection.compute_projection(batch_pcl_unaligned[curr_idx_batch], d_img, c_pose)
-        proj_mapping_list.append(proj_mapping)
-        img_count += 1
-
-    if None in proj_mapping_list:  # invalid sample
-        # print '(invalid sample)'
-        return None, None, None
-    proj_mapping = list(zip(*proj_mapping_list))
-    proj_ind_3d = torch.stack(proj_mapping[0])
-    proj_ind_2d = torch.stack(proj_mapping[1])
-
-    # TODO: finish proxy loss part
-    # if FLAGS.use_proxy_loss:
-    #     data_util.load_label_frames(opt.data_path_2d, frames[v], label_images, num_classes)
-    #     mask2d = label_images.view(-1).clone()
-    #     for k in range(num_classes):
-    #         if criterion_weights[k] == 0:
-    #             mask2d[mask2d.eq(k)] = 0
-    #     mask2d = mask2d.nonzero().squeeze()
-    #     if (len(mask2d.shape) == 0):
-    #         continue  # nothing to optimize for here
-
-    # 2d features
-    imageft_fixed = model2d_fixed(torch.autograd.Variable(color_images))
-    imageft = model2d_trainable(imageft_fixed)
-    # TODO: finish proxy loss part
-    # if opt.use_proxy_loss:
-    #     ft2d = model2d_classifier(imageft)
-    #     ft2d = ft2d.permute(0, 2, 3, 1).contiguous()
-
-    return proj_ind_3d, proj_ind_2d, imageft
+def get_intrinsics(scene_id, args):
+    intrinsic_str = read_lines_from_file(args.data_path_2d + '/' + scene_id + '/intrinsic_depth.txt')
+    fx = float(intrinsic_str[0].split()[0])
+    fy = float(intrinsic_str[1].split()[1])
+    mx = float(intrinsic_str[0].split()[2])
+    my = float(intrinsic_str[1].split()[2])
+    intrinsic = image_util.make_intrinsic(fx, fy, mx, my)
+    intrinsic = image_util.adjust_intrinsic(intrinsic, [args.intrinsic_image_width, args.intrinsic_image_height],
+                                      proj_image_dims)
+    return intrinsic
 
 class Solver():
     def __init__(self, model, config, dataloader, optimizer, stamp, val_step=10, use_lang_classifier=True, use_max_iou=False, args = {}):
         self.args = args
         self.epoch = 0                    # set in __call__
         self.verbose = 0                  # set in __call__
-        
         self.model = model
         self.config = config
         self.dataloader = dataloader
@@ -347,7 +203,7 @@ class Solver():
         self.model2d_fixed = self.model2d_fixed.cuda()
         self.model2d_fixed.eval()
         self.model2d_trainable = self.model2d_trainable.cuda()
-        self.model2d_classifier = self.model2d_classifier.cuda()
+        self.model2d_trainable
 
     def __call__(self, epoch, verbose):
         # setting
@@ -389,8 +245,8 @@ class Solver():
         else:
             raise ValueError("invalid phase")
 
-    def _forward(self, data_dict, imageft, proj_ind_3d, proj_ind_2d, num_points):
-        data_dict = self.model(data_dict, imageft, proj_ind_3d, proj_ind_2d, num_points)
+    def _forward(self, data_dict):
+        data_dict = self.model(data_dict)
 
         return data_dict
 
@@ -427,11 +283,15 @@ class Solver():
             # =======================================
             # Get 3d <-> 2D Projection Mapping and 2D feature map
             # =======================================
-            proj_ind_3d, proj_ind_2d, imageft = project_2d_features(data_dict, self.args, self.model2d_fixed,
-                                                                    self.model2d_trainable)
-            if proj_ind_3d is None or proj_ind_2d is None or imageft is None:
-                warnings.warn("Current training script: Projection invalid with scans: {}".format(data_dict['scan_name']))
-                continue
+            batch_size = len(data_dict['scan_name'])
+            new_features = np.zeros((batch_size, self.args.num_points, 128))
+            for idx, scene_id in enumerate(data_dict['scan_name']):
+                intrinsics = get_intrinsics(scene_id, self.args)
+                projection = ProjectionHelper(intrinsics, self.args.depth_min, self.args.depth_max, proj_image_dims)
+
+                features_2d = scannet_projection(data_dict['point_clouds'][idx].cpu().numpy(), intrinsics, projection, scene_id, self.args, self.model2d_fixed,self.model2d_trainable)
+                new_features[idx,:] = features_2d[:]
+            data_dict['new_features'] = torch.tensor(new_features,dtype=torch.float32).cuda()
 
             # initialize the running loss
             self._running_log = {
@@ -458,7 +318,7 @@ class Solver():
             with torch.autograd.set_detect_anomaly(False):
                 # forward
                 start = time.time()
-                data_dict = self._forward(data_dict, imageft, proj_ind_3d, proj_ind_2d, self.args.num_points)
+                data_dict = self._forward(data_dict)
                 self._compute_loss(data_dict)
                 self.log[phase]["forward"].append(time.time() - start)
 

@@ -51,7 +51,6 @@ def get_model(args):
         num_proposal=args.num_proposals,
         input_feature_dim=input_channels,
         use_lang_classifier=(not args.no_lang_cls),
-        num_nearest_images=args.num_nearest_images
     ).cuda()
 
     return model
@@ -142,7 +141,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--tag", type=str, help="tag for the training, e.g. cuda_wl", default="")
     parser.add_argument("--gpu", type=str, help="gpu", default="0")
-    parser.add_argument("--batch_size", type=int, help="batch size", default=8)
+    parser.add_argument("--batch_size", type=int, help="batch size", default=6)
     parser.add_argument("--epoch", type=int, help="number of epochs", default=10)
     parser.add_argument("--verbose", type=int, help="iterations of showing verbose", default=1)
     parser.add_argument("--val_step", type=int, help="iterations of validating", default=5000)
@@ -162,9 +161,9 @@ if __name__ == "__main__":
     # =================
     # 3DMV
     # =================
-    parser.add_argument('--data_path_2d', default='/home/davech2y/frames_square', help='path to 2d train data')
+    parser.add_argument('--data_path_2d', default='/home/haonan/PycharmProjects/mask-rcnn-for-indoor-objects/data/rawdata', help='path to 2d train data')
     parser.add_argument('--num_classes', default=18, help='#classes')
-    parser.add_argument('--num_nearest_images', type=int, default=10, help='#images')
+    parser.add_argument('--num_nearest_images', type=int, default=50, help='#images')
     parser.add_argument('--model2d_type', default='scannet', help='which enet (scannet)')
     parser.add_argument('--model2d_path', default='./2d_scannet.pth', help='path to enet model')
     parser.add_argument('--use_proxy_loss', dest='use_proxy_loss', action='store_true')
@@ -174,8 +173,9 @@ if __name__ == "__main__":
     # scannet intrinsic params
     parser.add_argument('--intrinsic_image_width', type=int, default=640, help='2d image width')
     parser.add_argument('--intrinsic_image_height', type=int, default=480, help='2d image height')
-    RAW_DATA_DIR = '/mnt/canis/Datasets/ScanNet/public/v2/scans/'
+    RAW_DATA_DIR = '/home/haonan/PycharmProjects/ScanRefer/data/scans/'
     parser.add_argument('--RAW_DATA_DIR', default=RAW_DATA_DIR)
+    parser.add_argument('--voxel_size', type=float, default=0.05, help='voxel size (in meters)')
 
 
     args = parser.parse_args()
