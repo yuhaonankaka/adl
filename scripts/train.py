@@ -135,7 +135,7 @@ def train(args):
 
     print("Start training...\n")
     save_info(args, root, num_params, train_dataset, val_dataset)
-    solver(args.epoch, args.verbose)
+    solver(args.epoch, args.verbose, args.read_model)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     RAW_DATA_DIR = '/mnt/canis/Datasets/ScanNet/public/v2/scans/'
     parser.add_argument('--RAW_DATA_DIR', default=RAW_DATA_DIR)
     parser.add_argument('--voxel_size', type=float, default=0.05, help='voxel size (in meters)')
-
+    parser.add_argument('--read_model', type=float, default=None, help='read model')
 
     args = parser.parse_args()
 

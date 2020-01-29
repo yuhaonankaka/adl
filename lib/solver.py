@@ -205,13 +205,14 @@ class Solver():
         self.model2d_trainable = self.model2d_trainable.cuda()
         self.model2d_trainable
 
-    def __call__(self, epoch, verbose):
+    def __call__(self, epoch, verbose, read_model=None):
         # setting
         self.epoch = epoch
         self.verbose = verbose
         self._total_iter["train"] = len(self.dataloader["train"]) * epoch
         self._total_iter["val"] = len(self.dataloader["val"]) * self.val_step
-        
+        if read_model!=None:
+            self.model.load_state_dict(torch.load(read_model))
         for epoch_id in range(epoch):
             try:
                 self._log("epoch {} starting...".format(epoch_id + 1))
