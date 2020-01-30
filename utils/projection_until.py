@@ -1,10 +1,10 @@
 import os, sys, inspect, time
 import torch
 import numpy as np
-import torchvision1
+import torchvision
 from PIL import Image
-import torchvision1.transforms.functional as TF
-import torchvision1.transforms as transforms
+import torchvision.transforms.functional as TF
+import torchvision.transforms as transforms
 from utils.image_util import load_depth_label_pose
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -28,7 +28,7 @@ proj_image_dims = [34, 25]
 # 2d mask r cnn model
 # get the model using our helper function
 def get_model_instance_segmentation(num_classes=18):
-    model = torchvision1.models.detection.maskrcnn_resnet50_fpn(num_classes=num_classes)
+    model = torchvision.models.detection.maskrcnn_resnet50_fpn(num_classes=num_classes)
     return model
 
 

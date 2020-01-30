@@ -3,7 +3,7 @@ import math
 import torch
 from torch import nn
 
-from torchvision1.ops import misc as misc_nn_ops
+from torchvision.ops import misc as misc_nn_ops
 from .image_list import ImageList
 from .roi_heads import paste_masks_in_image
 

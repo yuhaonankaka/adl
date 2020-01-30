@@ -2,11 +2,11 @@ import argparse
 import os
 
 import numpy as np
-from torchvision1.models.detection.backbone_utils import resnet_fpn_backbone
-from torchvision1.models.detection.transform import GeneralizedRCNNTransform
+from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
+from torchvision.models.detection.transform import GeneralizedRCNNTransform
 from tqdm import tqdm
 from PIL import Image
-import torchvision1.transforms.functional as TF
+import torchvision.transforms.functional as TF
 import torch
 
 def get_model(num_classes=18):

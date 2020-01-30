@@ -1,8 +1,8 @@
 import torch
 from torch import nn
 
-from torchvision1.ops import misc as misc_nn_ops
-from torchvision1.ops import MultiScaleRoIAlign
+from torchvision.ops import misc as misc_nn_ops
+from torchvision.ops import MultiScaleRoIAlign
 
 from ..utils import load_state_dict_from_url
 
@@ -101,13 +101,13 @@ class KeypointRCNN(FasterRCNN):
 
     Example::
 
-        >>> import torchvision1
-        >>> from torchvision1.models.detection import KeypointRCNN
-        >>> from torchvision1.models.detection.rpn import AnchorGenerator
+        >>> import torchvision
+        >>> from torchvision.models.detection import KeypointRCNN
+        >>> from torchvision.models.detection.rpn import AnchorGenerator
         >>>
         >>> # load a pre-trained model for classification and return
         >>> # only the features
-        >>> backbone = torchvision1.models.mobilenet_v2(pretrained=True).features
+        >>> backbone = torchvision.models.mobilenet_v2(pretrained=True).features
         >>> # KeypointRCNN needs to know the number of
         >>> # output channels in a backbone. For mobilenet_v2, it's 1280
         >>> # so we need to add it here
@@ -128,11 +128,11 @@ class KeypointRCNN(FasterRCNN):
         >>> # be [0]. More generally, the backbone should return an
         >>> # OrderedDict[Tensor], and in featmap_names you can choose which
         >>> # feature maps to use.
-        >>> roi_pooler = torchvision1.ops.MultiScaleRoIAlign(featmap_names=[0],
+        >>> roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=[0],
         >>>                                                 output_size=7,
         >>>                                                 sampling_ratio=2)
         >>>
-        >>> keypoint_roi_pooler = torchvision1.ops.MultiScaleRoIAlign(featmap_names=[0],
+        >>> keypoint_roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=[0],
         >>>                                                          output_size=14,
         >>>                                                          sampling_ratio=2)
         >>> # put the pieces together inside a FasterRCNN model
@@ -296,7 +296,7 @@ def keypointrcnn_resnet50_fpn(pretrained=False, progress=True,
 
     Example::
 
-        >>> model = torchvision1.models.detection.keypointrcnn_resnet50_fpn(pretrained=True)
+        >>> model = torchvision.models.detection.keypointrcnn_resnet50_fpn(pretrained=True)
         >>> model.eval()
         >>> x = [torch.rand(3, 300, 400), torch.rand(3, 500, 400)]
         >>> predictions = model(x)

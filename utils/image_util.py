@@ -6,7 +6,7 @@ import imageio
 from PIL import Image
 import numpy as np
 import torch
-import torchvision1.transforms as transforms
+import torchvision.transforms as transforms
 
 def read_lines_from_file(filename):
     assert os.path.isfile(filename)

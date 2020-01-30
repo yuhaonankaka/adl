@@ -1,8 +1,8 @@
-from torchvision1 import models
-from torchvision1 import datasets
-from torchvision1 import ops
-from torchvision1 import transforms
-from torchvision1 import utils
+from torchvision import models
+from torchvision import datasets
+from torchvision import ops
+from torchvision import transforms
+from torchvision import utils
 
 try:
     from .version import __version__  # noqa: F401
@@ -37,10 +37,10 @@ def get_image_backend():
 
 def _check_cuda_matches():
     """
-    Make sure that CUDA versions match between the pytorch install and torchvision1 install
+    Make sure that CUDA versions match between the pytorch install and torchvision install
     """
     import torch
-    from torchvision1 import _C
+    from torchvision import _C
     if hasattr(_C, "CUDA_VERSION") and torch.version.cuda is not None:
         tv_version = str(_C.CUDA_VERSION)
         if int(tv_version) < 10000:
@@ -54,9 +54,9 @@ def _check_cuda_matches():
         t_major = int(t_version[0])
         t_minor = int(t_version[1])
         if t_major != tv_major or t_minor != tv_minor:
-            raise RuntimeError("Detected that PyTorch and torchvision1 were compiled with different CUDA versions. "
-                               "PyTorch has CUDA Version={}.{} and torchvision1 has CUDA Version={}.{}. "
-                               "Please reinstall the torchvision1 that matches your PyTorch install."
+            raise RuntimeError("Detected that PyTorch and torchvision were compiled with different CUDA versions. "
+                               "PyTorch has CUDA Version={}.{} and torchvision has CUDA Version={}.{}. "
+                               "Please reinstall the torchvision that matches your PyTorch install."
                                .format(t_major, t_minor, tv_major, tv_minor))
 
 

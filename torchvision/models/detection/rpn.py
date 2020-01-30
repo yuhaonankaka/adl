@@ -3,7 +3,7 @@ import torch
 from torch.nn import functional as F
 from torch import nn
 
-from torchvision1.ops import boxes as box_ops
+from torchvision.ops import boxes as box_ops
 
 from . import _utils as det_utils
 

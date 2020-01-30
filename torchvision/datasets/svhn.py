@@ -62,7 +62,7 @@ class SVHN(VisionDataset):
                                ' You can use download=True to download it')
 
         # import here rather than at top of file because this is
-        # an optional dependency for torchvision1
+        # an optional dependency for torchvision
         import scipy.io as sio
 
         # reading(loading) mat file as array

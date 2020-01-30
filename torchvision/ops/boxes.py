@@ -1,5 +1,5 @@
 import torch
-from torchvision1 import _C
+from torchvision import _C
 
 
 def nms(boxes, scores, iou_threshold):
