@@ -42,7 +42,7 @@ def get_dataloader(args, scanrefer, all_scene_list, split, config, augment):
 
 def get_model(args):
     # initiate model
-    input_channels = int(args.use_online)*128 + int(args.use_multiview) * 128 + int(args.use_normal) * 3 + int(args.use_color) * 3 + int(not args.no_height)
+    input_channels = int(args.use_online)*32 + int(args.use_multiview) * 128 + int(args.use_normal) * 3 + int(args.use_color) * 3 + int(not args.no_height)
     model = RefNet(
         num_class=DC.num_class,
         num_heading_bin=DC.num_heading_bin,
@@ -176,7 +176,8 @@ if __name__ == "__main__":
     RAW_DATA_DIR = '/mnt/canis/Datasets/ScanNet/public/v2/scans/'
     parser.add_argument('--RAW_DATA_DIR', default=RAW_DATA_DIR)
     parser.add_argument('--voxel_size', type=float, default=0.05, help='voxel size (in meters)')
-    parser.add_argument('--read_model', default=None, help='read model')
+    parser.add_argument('--read_model', type=float, default=None, help='read model')
+    parser.add_argument('--res_features', default=None)
 
     args = parser.parse_args()
 

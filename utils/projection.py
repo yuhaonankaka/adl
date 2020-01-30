@@ -93,8 +93,9 @@ class ProjectionHelper():
     def compute_projection_multi(self, camera_to_worlds):
         # compute projection by voxels -> image
         world_to_camera = torch.inverse(camera_to_worlds)
-        voxel_bounds_min, voxel_bounds_max = self.compute_frustum_bounds_multi(camera_to_worlds)
-        return voxel_bounds_min, voxel_bounds_max, world_to_camera
+        # voxel_bounds_min, voxel_bounds_max = self.compute_frustum_bounds_multi(camera_to_worlds)
+        # return voxel_bounds_min, voxel_bounds_max, world_to_camera
+        return world_to_camera
 
     def compute_projection(self, camera_to_world):
         # compute projection by voxels -> image

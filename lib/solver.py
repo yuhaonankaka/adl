@@ -10,6 +10,7 @@ import warnings
 
 import torch
 import numpy as np
+from .torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 
@@ -17,7 +18,7 @@ from models.enet import create_enet_for_3d
 from utils import image_util
 from utils.image_util import read_lines_from_file
 from utils.projection import ProjectionHelper
-from utils.projection_until import scannet_projection
+from utils.projection_until import scannet_projection, get_model_instance_segmentation
 
 sys.path.append(os.path.join(os.getcwd(), "lib")) # HACK add the lib folder
 from lib.config import CONF
@@ -94,8 +95,8 @@ BEST_REPORT_TEMPLATE = """
 ENET_TYPES = {'scannet': (41, [0.496342, 0.466664, 0.440796], [0.277856, 0.28623, 0.291129])}
 
 input_image_dims = [320, 240]
-proj_image_dims = [40, 30]  # feature dimension of ENet
-# proj_image_dims = [41, 32]  # feature dimension of ENet
+# proj_image_dims = [40, 30]  # feature dimension of ENet
+proj_image_dims = [34, 25]
 # proj_image_dims = [320, 240]  # feature dimension of ENet
 color_mean = [0.496342, 0.466664, 0.440796]
 color_std = [0.277856, 0.28623, 0.291129]
@@ -196,14 +197,17 @@ class Solver():
         # create model
         # model2d_fixed, model2d_trainable, model2d_classifier = create_enet_for_3d(ENET_TYPES['scannet'],
         #                                                                           FLAGS.model2d_path, DATASET_CONFIG.num_class)
-        self.model2d_fixed, self.model2d_trainable, self.model2d_classifier = create_enet_for_3d(ENET_TYPES['scannet'],
-                                                                                  self.args.model2d_path, 18)
+        # self.model2d_fixed, self.model2d_trainable, self.model2d_classifier = create_enet_for_3d(ENET_TYPES['scannet'],
+        #                                                                           self.args.model2d_path, 18)
+        #
+        # # move to gpu
+        # self.model2d_fixed = self.model2d_fixed.cuda()
+        # self.model2d_fixed.eval()
+        # self.model2d_trainable = self.model2d_trainable.cuda()
+        # self.model2d_trainable
 
-        # move to gpu
-        self.model2d_fixed = self.model2d_fixed.cuda()
-        self.model2d_fixed.eval()
-        self.model2d_trainable = self.model2d_trainable.cuda()
-        self.model2d_trainable
+        # mask r cnn
+        self.maskrcnn_model = resnet_fpn_backbone('resnet18', True).fpn.cuda()
 
     def __call__(self, epoch, verbose, read_model=None):
         # setting
@@ -213,6 +217,7 @@ class Solver():
         self._total_iter["val"] = len(self.dataloader["val"]) * self.val_step
         if read_model!=None:
             self.model.load_state_dict(torch.load(read_model))
+        
         for epoch_id in range(epoch):
             try:
                 self._log("epoch {} starting...".format(epoch_id + 1))
@@ -277,22 +282,22 @@ class Solver():
 
         for data_dict in dataloader:
             # move to cuda
+            start = time.time()
             for key in data_dict:
                 if key!='scan_name':
                     data_dict[key] = data_dict[key].cuda()
-
             # =======================================
             # Get 3d <-> 2D Projection Mapping and 2D feature map
             # =======================================
             batch_size = len(data_dict['scan_name'])
-            new_features = np.zeros((batch_size, self.args.num_points, 128))
+            new_features = torch.zeros((batch_size, self.args.num_points, 32)).cuda()
             for idx, scene_id in enumerate(data_dict['scan_name']):
                 intrinsics = get_intrinsics(scene_id, self.args)
                 projection = ProjectionHelper(intrinsics, self.args.depth_min, self.args.depth_max, proj_image_dims)
-
-                features_2d = scannet_projection(data_dict['point_clouds'][idx].cpu().numpy(), intrinsics, projection, scene_id, self.args, self.model2d_fixed,self.model2d_trainable)
+                features_2d = scannet_projection(data_dict['point_clouds'][idx].cpu().numpy(), intrinsics, projection, scene_id, self.args, None,None, self.maskrcnn_model)
                 new_features[idx,:] = features_2d[:]
-            data_dict['new_features'] = torch.tensor(new_features,dtype=torch.float32).cuda()
+            data_dict['new_features'] = new_features
+            test = new_features.detach().cpu().numpy()
 
             # initialize the running loss
             self._running_log = {
@@ -318,7 +323,6 @@ class Solver():
 
             with torch.autograd.set_detect_anomaly(False):
                 # forward
-                start = time.time()
                 data_dict = self._forward(data_dict)
                 self._compute_loss(data_dict)
                 self.log[phase]["forward"].append(time.time() - start)
