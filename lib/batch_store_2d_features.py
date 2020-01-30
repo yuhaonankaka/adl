@@ -2,9 +2,8 @@ import argparse
 import os
 
 import numpy as np
-import torchvision
-from .torchvision.models.detection.backbone_utils import resnet_fpn_backbone
-from .torchvision.models.detection.transform import GeneralizedRCNNTransform
+from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
+from torchvision.models.detection.transform import GeneralizedRCNNTransform
 from tqdm import tqdm
 from PIL import Image
 import torchvision.transforms.functional as TF
