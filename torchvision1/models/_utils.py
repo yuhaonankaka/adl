@@ -26,9 +26,9 @@ class IntermediateLayerGetter(nn.ModuleDict):
 
     Examples::
 
-        >>> m = torchvision.models.resnet18(pretrained=True)
+        >>> m = torchvision1.models.resnet18(pretrained=True)
         >>> # extract layer1 and layer3, giving as names `feat1` and feat2`
-        >>> new_m = torchvision.models._utils.IntermediateLayerGetter(m,
+        >>> new_m = torchvision1.models._utils.IntermediateLayerGetter(m,
         >>>     {'layer1': 'feat1', 'layer3': 'feat2'})
         >>> out = new_m(torch.rand(1, 3, 224, 224))
         >>> print([(k, v.shape) for k, v in out.items()])

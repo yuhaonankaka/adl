@@ -10,7 +10,7 @@ import warnings
 
 import torch
 import numpy as np
-from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
+from torchvision1.models.detection.backbone_utils import resnet_fpn_backbone
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 

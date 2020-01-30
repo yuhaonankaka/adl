@@ -27,7 +27,7 @@ class FeaturePyramidNetwork(nn.Module):
 
     Examples::
 
-        >>> m = torchvision.ops.FeaturePyramidNetwork([10, 20, 30], 5)
+        >>> m = torchvision1.ops.FeaturePyramidNetwork([10, 20, 30], 5)
         >>> # get some dummy data
         >>> x = OrderedDict()
         >>> x['feat0'] = torch.rand(1, 10, 64, 64)

@@ -1,8 +1,8 @@
 from collections import OrderedDict
 from torch import nn
-from torchvision.ops.feature_pyramid_network import FeaturePyramidNetwork, LastLevelMaxPool
+from torchvision1.ops.feature_pyramid_network import FeaturePyramidNetwork, LastLevelMaxPool
 
-from torchvision.ops import misc as misc_nn_ops
+from torchvision1.ops import misc as misc_nn_ops
 from .._utils import IntermediateLayerGetter
 from .. import resnet
 
@@ -11,7 +11,7 @@ class BackboneWithFPN(nn.Sequential):
     """
     Adds a FPN on top of a model.
 
-    Internally, it uses torchvision.models._utils.IntermediateLayerGetter to
+    Internally, it uses torchvision1.models._utils.IntermediateLayerGetter to
     extract a submodel that returns the feature maps specified in return_layers.
     The same limitations of IntermediatLayerGetter apply here.
 

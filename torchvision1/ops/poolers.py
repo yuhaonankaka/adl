@@ -3,8 +3,8 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from torchvision.ops import roi_align
-from torchvision.ops.boxes import box_area
+from torchvision1.ops import roi_align
+from torchvision1.ops.boxes import box_area
 
 
 class LevelMapper(object):
@@ -54,7 +54,7 @@ class MultiScaleRoIAlign(nn.Module):
 
     Examples::
 
-        >>> m = torchvision.ops.MultiScaleRoIAlign(['feat1', 'feat3'], 3, 2)
+        >>> m = torchvision1.ops.MultiScaleRoIAlign(['feat1', 'feat3'], 3, 2)
         >>> i = OrderedDict()
         >>> i['feat1'] = torch.rand(1, 5, 64, 64)
         >>> i['feat2'] = torch.rand(1, 5, 32, 32)  # this feature won't be used in the pooling

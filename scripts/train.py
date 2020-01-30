@@ -161,7 +161,7 @@ if __name__ == "__main__":
     # =================
     # 3DMV
     # =================
-    parser.add_argument('--data_path_2d', default='/home/davech2y/frames_square', help='path to 2d train data')
+    parser.add_argument('--data_path_2d', default='--re', help='path to 2d train data')
     parser.add_argument('--num_classes', default=18, help='#classes')
     parser.add_argument('--num_nearest_images', type=int, default=50, help='#images')
     parser.add_argument('--model2d_type', default='scannet', help='which enet (scannet)')
