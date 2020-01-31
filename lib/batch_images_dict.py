@@ -2,7 +2,6 @@ import os
 import torch
 import numpy as np
 import torchvision.transforms as transforms
-from utils import image_util
 from utils.image_util import load_depth_label_pose
 from utils.projection import ProjectionHelper
 from tqdm import tqdm
