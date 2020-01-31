@@ -413,8 +413,8 @@ def get_intrinsics(scene_id):
     fy = float(intrinsic_str[1].split()[1])
     mx = float(intrinsic_str[0].split()[2])
     my = float(intrinsic_str[1].split()[2])
-    intrinsic = image_util.make_intrinsic(fx, fy, mx, my)
-    intrinsic = image_util.adjust_intrinsic(intrinsic, [640, 480],
+    intrinsic = make_intrinsic(fx, fy, mx, my)
+    intrinsic = adjust_intrinsic(intrinsic, [640, 480],
                                       proj_image_dims)
     return intrinsic
 
