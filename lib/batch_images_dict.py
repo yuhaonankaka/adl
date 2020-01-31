@@ -4,7 +4,9 @@ import numpy as np
 import torchvision.transforms as transforms
 from tqdm import tqdm
 
-from .. import utils
+from utils import image_util
+from utils.image_util import load_depth_label_pose
+from utils.projection import ProjectionHelper
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(BASE_DIR)
@@ -44,7 +46,7 @@ def load_frames_multi_2(data_path, image_names, depth_image_torch, color_image_t
         color_image_dims = [color_image_torch.shape[3], color_image_torch.shape[2]]
         normalize = transforms.Normalize(mean=color_mean, std=color_std)
         # load data
-        depth_img, color_img, pose = utils.load_depth_label_pose(depth_file, color_file, pose_file, depth_image_dims, color_image_dims, normalize)
+        depth_img, color_img, pose = load_depth_label_pose(depth_file, color_file, pose_file, depth_image_dims, color_image_dims, normalize)
         color_image = color_img
         depth_image = torch.from_numpy(depth_img)
         camera_pose = pose
@@ -73,8 +75,8 @@ def get_intrinsics(scene_id):
     fy = float(intrinsic_str[1].split()[1])
     mx = float(intrinsic_str[0].split()[2])
     my = float(intrinsic_str[1].split()[2])
-    intrinsic = utils.image_util.make_intrinsic(fx, fy, mx, my)
-    intrinsic = utils.image_util.adjust_intrinsic(intrinsic, [640, 480],
+    intrinsic = image_util.make_intrinsic(fx, fy, mx, my)
+    intrinsic = image_util.adjust_intrinsic(intrinsic, [640, 480],
                                       proj_image_dims)
     return intrinsic
 
@@ -82,7 +84,7 @@ def get_intrinsics(scene_id):
 def scannet_projection(scene_id):
     # load_images
     intrinsics = get_intrinsics(scene_id)
-    projection = utils.ProjectionHelper(intrinsics, 0.4, 4.0, proj_image_dims)
+    projection = ProjectionHelper(intrinsics, 0.4, 4.0, proj_image_dims)
     image_path = os.path.join(data_path_2d, scene_id, 'color')
     images = []
     for image_name in os.listdir(image_path):
