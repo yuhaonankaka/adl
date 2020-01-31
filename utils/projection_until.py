@@ -165,6 +165,10 @@ def project_images(data_path, image_names, mesh_vertices, args, model2d_fixed, m
     return output
 
 # ROOT_DIR:indoor-objects
+def transfer(key):
+    return int(key)
+
+# ROOT_DIR:indoor-objects
 def scannet_projection(vertices, intrinsic, projection, scene_id, args, model2d_fixed, model2d_trainable, maskrcnn_model):
     # load vertices
     mesh_vertices = vertices[:,0:3]
@@ -186,20 +190,18 @@ def scannet_projection(vertices, intrinsic, projection, scene_id, args, model2d_
     # load_images
     image_path = os.path.join(args.data_path_2d, scene_id, 'color')
     images = []
-
     for image_name in os.listdir(image_path):
         image_name = image_name.replace(".jpg", "", 1)
         images.append(image_name)
-
-    # TODO MAKE THIS THE SAME AS BATCH load
-    interval = round(len(images) / args.num_nearest_images)
+    images.sort(key=transfer)
+    interval = round(len(images) / 40)
     if interval == 0:
         interval = 1
     indices = np.arange(0, len(images), interval)
-    indices = indices[:args.num_nearest_images]
+    indices = indices[:40]
     indices = indices.astype('int32')
     indices = list(indices)
-    data_path = os.path.join(args.data_path_2d,scene_id)
+    data_path = os.path.join('/home/davech2y/frames_square', scene_id)
     images = [images[i] for i in indices]
     mesh_vertices = project_images(data_path, images, mesh_vertices,args, model2d_fixed, model2d_trainable,projection, maskrcnn_model, scene_id)
 
