@@ -4,8 +4,9 @@ import numpy as np
 import torchvision.transforms as transforms
 from tqdm import tqdm
 
-from utils import image_util
-from utils.image_util import load_depth_label_pose
+from ..utils import image_util
+from ..utils.image_util import load_depth_label_pose
+from ..utils.projection import ProjectionHelper
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(BASE_DIR)
