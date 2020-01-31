@@ -85,10 +85,9 @@ def load_frames_multi_2(data_path, image_names, depth_image_torch, color_image_t
 
 
 def project_images(data_path, image_names, mesh_vertices, args, model2d_fixed, model2d_trainable,projection, maskrcnn_model,scene_id):
-    depth_image = torch.cuda.FloatTensor(len(image_names), proj_image_dims[1], proj_image_dims[0])
-    color_image = torch.cuda.FloatTensor(len(image_names), 3, input_image_dims[1], input_image_dims[0])
-    camera_pose = torch.cuda.FloatTensor(len(image_names), 4, 4)
-    color_images,depth_images,camera_poses = load_frames_multi_2(data_path, image_names, depth_image, color_image, camera_pose, color_mean, color_std)
+    dict = torch.load("/home/davech2y/adl/lib/data_2d/"+scene_id +".dictt")
+    depth_images = dict["depth"]
+    camera_poses = dict["camera"]
     depth_images = torch.stack(depth_images)
     camera_poses = torch.stack(camera_poses)
     # boundingmin, boundingmax, world_to_camera = projection.compute_projection_multi(camera_poses)
