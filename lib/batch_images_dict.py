@@ -400,7 +400,6 @@ def project_images(data_path, image_names,scene_id):
     camera_pose = torch.cuda.FloatTensor(len(image_names), 4, 4)
     color_images,depth_images,camera_poses = load_frames_multi_2(data_path, image_names, depth_image, color_image, camera_pose, color_mean, color_std)
     dict_2d = {}
-    dict_2d["color"] = color_images
     dict_2d["depth"] = depth_images
     dict_2d["camera"] = camera_poses
     torch.save(dict_2d, "/home/davech2y/adl/lib/data_2d/"+scene_id +".dictt")
