@@ -286,6 +286,7 @@ class Solver():
             for key in data_dict:
                 if key!='scan_name':
                     data_dict[key] = data_dict[key].cuda()
+            start2 = time.time()
             # =======================================
             # Get 3d <-> 2D Projection Mapping and 2D feature map
             # =======================================
@@ -297,7 +298,9 @@ class Solver():
                 features_2d = scannet_projection(data_dict['point_clouds'][idx].cpu().numpy(), intrinsics, projection, scene_id, self.args, None,None, self.maskrcnn_model)
                 new_features[idx,:] = features_2d[:]
             data_dict['new_features'] = new_features
-            test = new_features.detach().cpu().numpy()
+            end2 = time.time()
+            duration = end2-start2
+            print("projection duration:", duration)
 
             # initialize the running loss
             self._running_log = {
