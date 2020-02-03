@@ -11,6 +11,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 from datetime import datetime
 from tqdm import tqdm
+from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 
 
 sys.path.append(os.path.join(os.getcwd())) # HACK add the root folder
@@ -105,6 +106,7 @@ def evaluate(args):
     objectness_precisions, objectness_recalls, objectness_f1s = [], [], []
     ious = []
     masks = []
+    maskrcnn_model = resnet_fpn_backbone('resnet18', True).fpn.cuda()
     for data in tqdm(dataloader):
         for key in data:
             if key!="scan_name":
@@ -116,7 +118,7 @@ def evaluate(args):
                 intrinsics = get_intrinsics(scene_id, args)
                 projection = ProjectionHelper(intrinsics, args.depth_min, args.depth_max, proj_image_dims)
                 features_2d = scannet_projection(data['point_clouds'][idx].cpu().numpy(), intrinsics, projection,
-                                                 scene_id, args, None, None, model.maskrcnn_model)
+                                                 scene_id, args, None, None, maskrcnn_model)
                 new_features[idx, :] = features_2d[:]
             data['new_features'] = new_features
 
