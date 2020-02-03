@@ -8,7 +8,7 @@ import os
 
 from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 
-from utils.projection import Projection
+from utils.projection import ProjectionHelper
 from utils.projection_until import scannet_projection
 
 sys.path.append(os.path.join(os.getcwd(), "lib")) # HACK add the lib folder
@@ -91,7 +91,7 @@ class RefNet(nn.Module):
         new_features = torch.zeros((batch_size, args.num_points, 32)).cuda()
         for idx, scene_id in enumerate(data_dict['scan_name']):
             intrinsics = get_intrinsics(scene_id, args)
-            projection = Projection.ProjectionHelper(intrinsics, args.depth_min, args.depth_max, proj_image_dims)
+            projection = ProjectionHelper(intrinsics, args.depth_min, args.depth_max, proj_image_dims)
             features_2d = scannet_projection(data_dict['point_clouds'][idx].cpu().numpy(), intrinsics, projection,
                                              scene_id, args, None, None, self.maskrcnn_model)
             new_features[idx, :] = features_2d[:]
