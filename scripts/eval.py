@@ -105,7 +105,8 @@ def evaluate(args):
     masks = []
     for data in tqdm(dataloader):
         for key in data:
-            data[key] = data[key].cuda()
+            if key!="scan_name":
+                data[key] = data[key].cuda()
 
         # feed
         data = model(data)
