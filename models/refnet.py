@@ -65,7 +65,7 @@ class RefNet(nn.Module):
         # Vote aggregation, detection and language reference
         self.rfnet = RefModule(num_class, num_heading_bin, num_size_cluster, mean_size_arr, num_proposal, sampling, use_lang_classifier)
 
-    def forward(self, data_dict):
+    def forward(self, data_dict, args):
         """ Forward pass of the network
 
         Args:

@@ -229,7 +229,7 @@ class Solver():
             raise ValueError("invalid phase")
 
     def _forward(self, data_dict):
-        data_dict = self.model(data_dict)
+        data_dict = self.model(data_dict,self.args)
 
         return data_dict
 
