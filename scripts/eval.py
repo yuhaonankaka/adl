@@ -45,18 +45,19 @@ def get_dataloader(args, scanrefer, all_scene_list, split, config):
     return dataset, dataloader
 
 def get_model(args):
-    # load model
-    input_channels = int(args.use_multiview) * 128 + int(args.use_normal) * 3 + int(args.use_color) * 3 + int(not args.no_height)
+    # initiate model
+    input_channels = int(args.use_online)*32 + int(args.use_multiview) * 128 + int(args.use_normal) * 3 + int(args.use_color) * 3 + int(not args.no_height)
     model = RefNet(
         num_class=DC.num_class,
         num_heading_bin=DC.num_heading_bin,
         num_size_cluster=DC.num_size_cluster,
         mean_size_arr=DC.mean_size_arr,
         num_proposal=args.num_proposals,
-        input_feature_dim=input_channels
+        input_feature_dim=input_channels,
+        use_lang_classifier=(not args.no_lang_cls),
     ).cuda()
 
-    path = os.path.join(CONF.PATH.OUTPUT, args.folder, "model.pth")
+    path = os.path.join(CONF.PATH.OUTPUT, args.folder, "model_last.pth")
     model.load_state_dict(torch.load(path), strict=False)
     model.eval()
 
@@ -171,6 +172,28 @@ if __name__ == "__main__":
     parser.add_argument('--use_color', action='store_true', help='Use RGB color in input.')
     parser.add_argument('--use_normal', action='store_true', help='Use RGB color in input.')
     parser.add_argument('--use_multiview', action='store_true', help='Use multiview images.')
+    parser.add_argument('--use_online', action='store_false', help='Use online images.')
+    # =================
+    # 3DMV
+    # =================
+    parser.add_argument('--data_path_2d', default='--re', help='path to 2d train data')
+    parser.add_argument('--num_classes', default=18, help='#classes')
+    parser.add_argument('--num_nearest_images', type=int, default=50, help='#images')
+    parser.add_argument('--model2d_type', default='scannet', help='which enet (scannet)')
+    parser.add_argument('--model2d_path', default='./2d_scannet.pth', help='path to enet model')
+    parser.add_argument('--use_proxy_loss', dest='use_proxy_loss', action='store_true')
+    # 2d/3d
+    parser.add_argument('--depth_min', type=float, default=0.4, help='min depth (in meters)')
+    parser.add_argument('--depth_max', type=float, default=4.0, help='max depth (in meters)')
+    # scannet intrinsic params
+    parser.add_argument('--intrinsic_image_width', type=int, default=640, help='2d image width')
+    parser.add_argument('--intrinsic_image_height', type=int, default=480, help='2d image height')
+    RAW_DATA_DIR = '/mnt/canis/Datasets/ScanNet/public/v2/scans/'
+    parser.add_argument('--RAW_DATA_DIR', default=RAW_DATA_DIR)
+    parser.add_argument('--voxel_size', type=float, default=0.05, help='voxel size (in meters)')
+    parser.add_argument('--read_model', default=None, help='read model')
+    parser.add_argument('--res_features', default=None)
+
     args = parser.parse_args()
 
     # setting
