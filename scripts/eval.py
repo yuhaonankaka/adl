@@ -12,10 +12,13 @@ from torch.utils.data import DataLoader
 from datetime import datetime
 from tqdm import tqdm
 
+from utils.projection import ProjectionHelper
+from utils.projection_until import scannet_projection, proj_image_dims
+
 sys.path.append(os.path.join(os.getcwd())) # HACK add the root folder
 from lib.config import CONF
 from lib.dataset import ScannetReferenceDataset
-from lib.solver import Solver
+from lib.solver import Solver, get_intrinsics
 from lib.ap_helper import APCalculator, parse_predictions, parse_groundtruths
 from lib.loss_helper import get_loss
 from models.refnet import RefNet
@@ -107,6 +110,16 @@ def evaluate(args):
         for key in data:
             if key!="scan_name":
                 data[key] = data[key].cuda()
+
+            batch_size = len(data['scan_name'])
+            new_features = torch.zeros((batch_size, 40000, 32)).cuda()
+            for idx, scene_id in enumerate(data['scan_name']):
+                intrinsics = get_intrinsics(scene_id, args)
+                projection = ProjectionHelper(intrinsics, args.depth_min, args.depth_max, proj_image_dims)
+                features_2d = scannet_projection(data['point_clouds'][idx].cpu().numpy(), intrinsics, projection,
+                                                 scene_id, args, None, None, model.maskrcnn_model)
+                new_features[idx, :] = features_2d[:]
+            data['new_features'] = new_features
 
         # feed
         data = model(data)
