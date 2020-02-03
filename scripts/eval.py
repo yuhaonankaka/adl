@@ -12,14 +12,15 @@ from torch.utils.data import DataLoader
 from datetime import datetime
 from tqdm import tqdm
 
-from ..utils.projection import ProjectionHelper
-from ..utils.projection_until import scannet_projection, proj_image_dims
 
 sys.path.append(os.path.join(os.getcwd())) # HACK add the root folder
-from ..lib.config import CONF
-from ..lib.dataset import ScannetReferenceDataset
-from ..lib.solver import Solver, get_intrinsics
-from ..lib.loss_helper import get_loss
+from utils.projection import ProjectionHelper
+from utils.projection_until import scannet_projection, proj_image_dims
+
+from lib.config import CONF
+from lib.dataset import ScannetReferenceDataset
+from lib.solver import Solver, get_intrinsics
+from lib.loss_helper import get_loss
 from models.refnet import RefNet
 from data.scannet.model_util_scannet import ScannetDatasetConfig
 
