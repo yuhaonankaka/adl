@@ -114,6 +114,7 @@ def evaluate(args):
 
         batch_size = len(data['scan_name'])
         new_features = torch.zeros((batch_size, 40000, 32)).cuda()
+        print("start to project")
         for idx, scene_id in enumerate(data['scan_name']):
             intrinsics = get_intrinsics(scene_id, args)
             projection = ProjectionHelper(intrinsics, args.depth_min, args.depth_max, proj_image_dims)
@@ -121,6 +122,7 @@ def evaluate(args):
                                              scene_id, args, None, None, maskrcnn_model)
             new_features[idx, :] = features_2d[:]
         data['new_features'] = new_features
+        print("finish projection")
 
         # feed
         data = model(data)
