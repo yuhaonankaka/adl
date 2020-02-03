@@ -88,12 +88,12 @@ class RefNet(nn.Module):
         # Get 3d <-> 2D Projection Mapping and 2D feature map
         # =======================================
         batch_size = len(data_dict['scan_name'])
-        new_features = torch.zeros((batch_size, self.args.num_points, 32)).cuda()
+        new_features = torch.zeros((batch_size, args.num_points, 32)).cuda()
         for idx, scene_id in enumerate(data_dict['scan_name']):
-            intrinsics = get_intrinsics(scene_id, self.args)
-            projection = Projection.ProjectionHelper(intrinsics, self.args.depth_min, self.args.depth_max, proj_image_dims)
+            intrinsics = get_intrinsics(scene_id, args)
+            projection = Projection.ProjectionHelper(intrinsics, args.depth_min, args.depth_max, proj_image_dims)
             features_2d = scannet_projection(data_dict['point_clouds'][idx].cpu().numpy(), intrinsics, projection,
-                                             scene_id, self.args, None, None, self.maskrcnn_model)
+                                             scene_id, args, None, None, self.maskrcnn_model)
             new_features[idx, :] = features_2d[:]
         data_dict['new_features'] = new_features
         pcl_enriched = torch.cat((data_dict['point_clouds'], data_dict['new_features']), dim=2)
