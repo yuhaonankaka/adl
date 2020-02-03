@@ -112,15 +112,15 @@ def evaluate(args):
             if key!="scan_name":
                 data[key] = data[key].cuda()
 
-            batch_size = len(data['scan_name'])
-            new_features = torch.zeros((batch_size, 40000, 32)).cuda()
-            for idx, scene_id in enumerate(data['scan_name']):
-                intrinsics = get_intrinsics(scene_id, args)
-                projection = ProjectionHelper(intrinsics, args.depth_min, args.depth_max, proj_image_dims)
-                features_2d = scannet_projection(data['point_clouds'][idx].cpu().numpy(), intrinsics, projection,
-                                                 scene_id, args, None, None, maskrcnn_model)
-                new_features[idx, :] = features_2d[:]
-            data['new_features'] = new_features
+        batch_size = len(data['scan_name'])
+        new_features = torch.zeros((batch_size, 40000, 32)).cuda()
+        for idx, scene_id in enumerate(data['scan_name']):
+            intrinsics = get_intrinsics(scene_id, args)
+            projection = ProjectionHelper(intrinsics, args.depth_min, args.depth_max, proj_image_dims)
+            features_2d = scannet_projection(data['point_clouds'][idx].cpu().numpy(), intrinsics, projection,
+                                             scene_id, args, None, None, maskrcnn_model)
+            new_features[idx, :] = features_2d[:]
+        data['new_features'] = new_features
 
         # feed
         data = model(data)
