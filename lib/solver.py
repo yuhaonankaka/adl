@@ -106,6 +106,7 @@ class Solver():
         self.val_step = val_step
         self.use_lang_classifier = use_lang_classifier
         self.use_max_iou = use_max_iou
+        self.optimizer = optimizer
 
         self.best = {
             "epoch": 0,
